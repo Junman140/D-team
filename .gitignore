@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env*
+!.env.example
+out/
+var/
+*.tsbuildinfo
+next-env.d.ts
+# Original source footage stays outside Git; the site uses the optimized reels.
+public/videos/*.MOV
