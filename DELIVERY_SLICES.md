@@ -2,7 +2,7 @@
 
 This is the working execution tracker for the D-Team build. Each slice should leave a usable increment, update this file, and meet its acceptance checks before being marked complete. Keep YAW intact. Do not start a dependent slice while its prerequisite is unresolved unless the dependency is explicitly marked as deferred.
 
-**Last updated:** 24 October 2026
+**Last updated:** 27 October 2026
 **Status key:** `Not started` · `In progress` · `Waiting on input` · `Complete`
 
 ## Release path
@@ -13,15 +13,15 @@ This is the working execution tracker for the D-Team build. Each slice should le
 | S1 | Public shell and responsive navigation | S0 | Complete |
 | S2 | Homepage story and approved media | S1, asset decision | In progress (image/video overhaul from the expanded library built 22 Oct; publication approval pending) |
 | S3 | Work index and case study | S1; project content deferred pending approval | In progress |
-| S4 | Services, packages, and inquiry submission | S0; public pricing deferred pending approval | In progress (brochure, package page, expanded capabilities, and budget planner built; rates/approval pending) |
+| S4 | Services, packages, and inquiry submission | S0; public pricing deferred pending approval | In progress (Gmail SMTP notification delivery and staff retry built; environment and owner launch gates pending) |
 | S5 | Data foundation and authentication | S0; hosting/roles decision for deployment | In progress (local foundation verified; production decisions pending) |
 | S6 | Admin CMS for public content | S5 local auth foundation | Complete (verified on disposable database) |
 | S7 | Clients and project lifecycle | S5 | In progress (core + milestones/dashboard built; staging review pending) |
 | S8 | Crew, availability, schedule, and call sheets | S7 | In progress (core + multi-department review built; staging review pending) |
 | S9 | Quotes and deliverables | S7 | In progress (core + external delivery links + discounts built; staging review pending) |
-| S10 | Media library, event galleries, and sharing | S5, storage decision | In progress (local authorization + derivatives built; production storage/CDN pending) |
+| S10 | Media library, event galleries, and sharing | S5 | In progress (private Vercel Blob client uploads, permission-scoped access, five-minute signed reads, and image derivatives built; Blob store setup pending) |
 | S11 | Team, journal, and social publishing | S6 | Complete (verified on disposable database) |
-| S12 | Release hardening and operations | S3–S11 | In progress (build/security baseline and disposable migration verified; staging/ops pending) |
+| S12 | Release hardening and operations | S3–S11 | In progress (build and TypeScript pass; staging, backup/restore, monitoring, accessibility/performance review pending) |
 
 ## Outstanding scope · 21 October 2026
 
@@ -44,7 +44,7 @@ The owner has supplied 47 crew/event photographs in `public/` and asked for the 
 - [x] S7: add project milestones and a useful Studio overview dashboard.
 - [x] S8: support crew membership in multiple departments and add the department/role review flow.
 - [x] S9: add quote discounts; external deliverable delivery links with expiry/revocation are built.
-- [x] S10: add optimized media derivatives and thumbnails to the studio upload path. Production storage/CDN selection remains a separate release gate.
+- [x] S10: use private Vercel Blob for Studio uploads, add optimized image derivatives and thumbnails, and authorize reads before issuing short-lived signed URLs. A connected production Blob store remains a release gate.
 - [ ] S12: finish staging verification, accessibility/performance/SEO review, logging/monitoring, backup/restore/rollback, and the Next.js security recheck.
 
 ### 3. Owner decisions still blocking launch
@@ -52,8 +52,8 @@ The owner has supplied 47 crew/event photographs in `public/` and asked for the 
 - [ ] Approve which supplied photographs may be published, and confirm photographer credit/watermark policy.
 - [ ] Approve package names, rates, inclusions, and whether any rates are public.
 - [ ] Approve service/capability descriptions, brochure copy, and legal/privacy wording.
-- [x] Phone/WhatsApp contact supplied (`+234 701 067 6567`) and wired site-wide (homepage contact section, footer, floating WhatsApp button); TikTok supplied and wired; other social URLs, inquiry notification recipient/provider, and retention policy remain unconfirmed. Postal/contact address still pending confirmation.
-- [ ] Select production database/hosting, object storage/CDN, backup retention, and final staff role policy.
+- [x] Phone/WhatsApp contact supplied (`+234 701 067 6567`) and wired site-wide (homepage contact section, footer, floating WhatsApp button); TikTok supplied and wired. Gmail SMTP is implemented; notification recipient, privacy/retention policy, postal/contact address, and other social URLs remain to confirm.
+- [ ] Select production database/hosting, connect the Vercel Blob store, configure backup retention, and confirm final staff role policy.
 
 ## Disposable verification run · 21 October 2026
 
@@ -193,7 +193,7 @@ A fresh user-owned PostgreSQL 18.6 cluster on `127.0.0.1:55432` verified the com
 
 **Acceptance:** authorization is checked before upload and download; file type/size rules are enforced; unshared files have no public URL; gallery links can be revoked; public images/videos use optimized derivatives.
 
-**Updated 21 October 2026:** implemented `/studio/media` with private-by-default uploads, metadata, galleries, share grants, expiry, and revocation. Files are type- and size-limited, stored through a local development adapter under `var/media` or `MEDIA_STORAGE_DIR`, and served only through an authorization route at `/api/media/[id]`. The route permits public assets, valid unexpired share-token access, or staff with `media.read` in the owning organization; private and token-authorized responses are `no-store` so revoked links are not cached. Public shared galleries render at `/g/[token]` with `noindex`. A disposable run verified the local authorization model: staff access returned 200, anonymous access returned 404, a share token returned 200 with `private, no-store`, the shared gallery returned 200, and revocation made both routes return 404. This does not satisfy S10's production acceptance: object storage/CDN and production upload limits remain pending the storage decision. The local adapter is not suitable for production deployment.
+**Updated 27 October 2026:** Studio uploads now go directly from the browser to a private Vercel Blob store through a permission-checked upload-token route, avoiding Vercel Function request-size limits. The server verifies Blob metadata before associating the upload with the staff member's organization and project. Authorized reads are redirected to a five-minute signed URL scoped to a single object and `get` operation. Galleries and revocable share grants remain behind the app authorization route; public assets are still served through the same route. Private image derivatives are generated when `ffmpeg`/`ffprobe` are available. The production store and `BLOB_READ_WRITE_TOKEN` must be provisioned in Vercel before media uploads can run there.
 
 **Updated 21 October 2026:** the local upload path now generates 960px and 480px WebP derivatives and image dimensions through `ffmpeg`/`ffprobe` when available, stores the derivative keys on `MediaAsset`, serves `?size=thumb|medium` through the authorized media route, and deletes all derivative files with the original. Studio previews and shared galleries use the smaller derivatives. If the host lacks `ffmpeg`, uploads still succeed and fall back to the original. Production storage/CDN and upload limits remain the acceptance blocker.
 
@@ -211,7 +211,7 @@ A fresh user-owned PostgreSQL 18.6 cluster on `127.0.0.1:55432` verified the com
 
 **Acceptance:** type and lint checks are enforced in production build; critical user journeys work in staging; reduced motion is honored; data recovery is documented and demonstrated; deployment can be rolled back.
 
-**Updated 21 October 2026 (partial):** added `/api/health`, baseline security headers, `poweredByHeader: false`, `MEDIA_STORAGE_DIR` in `.env.example`, and `var/` to `.gitignore`. Route inventory, server-side permission checks, and the production build were reviewed while implementing S7–S11. `npx tsc --noEmit`, `pnpm db:validate`, `pnpm auth:schema-check`, and `pnpm build` passed on 21 October 2026. A production-server smoke test without database environment variables returned 200 for `/`, `/work`, `/services`, `/pricing`, `/team`, `/journal`, `/socials`, `/privacy`, `/terms`, and `/request-quote`; `/studio` returned a 307 sign-in redirect and `/api/health` returned 503 because the database is not configured. A separate disposable-database run verified all six migrations and the main content, production, media, and inquiry journeys. Prisma's transitive `mysql2` and `deepmerge-ts` advisories were resolved with pinned overrides in `pnpm-workspace.yaml`; `pnpm audit --prod` now reports no known vulnerabilities, and `prisma migrate deploy` still applied the then-current six migrations cleanly; the later migration runs are recorded below. Remaining S12 work: apply and verify the new migration on a staging database, run critical journeys, complete accessibility/performance/SEO review, select hosting/database/storage/email, configure logging and backups, document restore/rollback, and recheck the Next.js security advisory. No lint script is configured yet.
+**Updated 27 October 2026:** inquiry email delivery now uses Gmail SMTP with persistent sent/failed status, error details for staff, and a permission-checked retry action in `/studio/inquiries`. Inquiry persistence succeeds even if SMTP delivery fails. The migration `20261027000100_inquiry_email_notifications` adds delivery tracking. TypeScript and the production build pass. Remaining S12 work: apply and verify the migration on the selected deployment database, configure the Vercel Blob store and Gmail SMTP values, stage-review the inquiry and media flows, complete accessibility/performance/SEO review, configure logging and backups, document restore/rollback, and recheck the Next.js security advisory. Public inquiry submissions stay disabled until launch settings and privacy details are approved.
 
 **Updated 21 October 2026 (SEO/verification):** added `robots.txt` and a database-aware `sitemap.xml` that excludes Studio, delivery, share, quote, and draft-only routes; `SITE_URL` is the canonical-origin setting. A second fresh disposable PostgreSQL 18.6 cluster applied the then-current seven migrations, including `20261021000200_milestones_departments_delivery`; the new milestone, department, delivery, and media-derivative columns/tables were present. With that database configured, the production server returned 200 for `/packages`, `/brochure`, `/delivery/<valid-token>`, and `/api/health`; `/pricing` returned 308; revoked and unknown delivery tokens returned 404. `pnpm db:validate`, `pnpm auth:schema-check`, `npx tsc --noEmit`, and `pnpm build` passed. A final fresh cluster applied all eight migrations, including `20261021000300_quote_discounts`; the `discountAmount` and `discountLabel` columns were present. This did not re-run the full Studio role matrix, discount action flow, or production storage/CDN behavior.
 
@@ -227,9 +227,9 @@ A fresh user-owned PostgreSQL 18.6 cluster on `127.0.0.1:55432` verified the com
 
 1. Stage-review S7–S10: milestones/overview, multi-department crew, external delivery, quote discounts, and media derivatives.
 2. Select the production/staging PostgreSQL target and apply the seven committed migrations there. The full migration history and new public routes are verified on disposable PostgreSQL 18.6 clusters; no shared or production database exists yet.
-3. Continue S4 after owner decisions: confirm service scope and package rates, privacy/retention wording, and whether the in-app inbox is sufficient or email notifications need a destination/provider. Until then `PUBLIC_INQUIRIES_ENABLED=false` keeps public collection paused.
+3. Continue S4 after owner decisions: confirm service scope and package rates, privacy/retention wording, and the inquiry notification destination. Gmail SMTP delivery is implemented; set its environment values before opening submissions. Until then `PUBLIC_INQUIRIES_ENABLED=false` keeps public collection paused.
 4. Complete S12 hardening: staging verification, accessibility/performance/SEO pass, logging/backups/restore/rollback, lint gate, and a recheck of the Next.js security advisory before deployment.
-5. Choose object storage/CDN before S10 production use; the local filesystem adapter and `ffmpeg` derivatives are development-only.
+5. Create and connect a private Vercel Blob store; Vercel will provision `BLOB_READ_WRITE_TOKEN`.
 
 ## Decisions currently waiting on the project owner
 
@@ -238,5 +238,13 @@ A fresh user-owned PostgreSQL 18.6 cluster on `127.0.0.1:55432` verified the com
 - Confirm whether YAW remains an independent live product; this plan keeps it separate.
 - Confirm published package names/rates versus custom-quote-only services, and the budget-planner assumptions.
 - Confirm brochure copy and distribution format within the no-new-dependency constraint.
-- Confirm service descriptions, privacy contact and inquiry retention wording, and whether staff need email notifications (and recipient/provider).
-- Confirm the proposed staff access permissions and the host/database target before applying the S5 migration to a real deployment; choose object storage before S10.
+- Confirm service descriptions, privacy contact and inquiry retention wording, plus the inbox recipient email.
+- Confirm the proposed staff access permissions and the host/database target before applying migrations to a real deployment; create/connect the Vercel Blob store before S10 production use.
+
+## Delivery update · 27 October 2026
+
+- Deleted seven unreferenced raw camera files (`IMG_5250.MOV`, `IMG_5251.MOV`, `IMG_5265.MOV`, `IMG_5266.MOV`, `IMG_5268.MOV`, `IMG_5272.MOV`, `IMG_5273.MOV`). Preserved all optimized `reel-1` through `reel-3` MP4/WebM files and posters used by the showreel.
+- Implemented inquiry notification delivery, persisted status/error/sent time, retry action, and migration `20261027000100_inquiry_email_notifications`.
+- Implemented private Vercel Blob uploads, permission-scoped upload token creation, metadata validation, five-minute signed reads, and blob deletion alongside media deletion.
+- Added SMTP and Blob settings to `.env.example`; no secrets were added.
+- Checks run: `pnpm exec tsc --noEmit`, `pnpm db:validate`, and `pnpm build` pass. Database migration, Gmail delivery, and Blob transfer still need environment-backed staging verification.

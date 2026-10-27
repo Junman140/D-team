@@ -2,7 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { getStudioWorkspaceAccess, hasStudioPermission } from "@/lib/auth/session";
 import { getPrisma } from "@/lib/db/prisma";
 import { formatBytes, formatDate, formatDateTime, toDateTimeLocal } from "@/lib/format";
-import { addGalleryAsset, createGallery, createShareGrant, deleteMediaAsset, removeGalleryAsset, revokeShareGrant, setGalleryPublication, setMediaVisibility, uploadMedia } from "./actions";
+import { MediaUploader } from "@/components/studio/media-uploader";
+import { addGalleryAsset, createGallery, createShareGrant, deleteMediaAsset, removeGalleryAsset, revokeShareGrant, setGalleryPublication, setMediaVisibility } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Media | D-Team Production", robots: { index: false, follow: false } };
@@ -35,17 +36,12 @@ export default async function MediaPage() {
     <>
       <p className="eyebrow">D—TEAM PRODUCTION · MEDIA</p>
       <h1 className="studio-page-title">Private by default.<br /><em>Shared on purpose.</em></h1>
-      <p className="studio-page-intro">Uploads use the local development storage adapter. Production object storage/CDN remains a decision gate. Files stay private unless an explicit share link is created; share links can expire or be revoked.</p>
+      <p className="studio-page-intro">Files upload directly to private Vercel Blob storage. Public files are served through the access-controlled media route; share links can expire or be revoked.</p>
 
       {canUpload && <section className="cms-panel">
         <span className="studio-empty-index">UPLOAD MEDIA</span>
         <h2>Add a file</h2>
-        <form action={uploadMedia} className="cms-form" encType="multipart/form-data">
-          <label className="cms-wide">File <span>Images, video, or PDF · max 50 MB</span><input name="file" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif,video/mp4,video/webm,video/quicktime,application/pdf" required /></label>
-          <label>Project<select name="projectId" defaultValue=""><option value="">Unassigned</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
-          <label>Visibility<select name="visibility" defaultValue="private"><option value="private">Private</option><option value="public">Public</option></select></label>
-          <button type="submit">Upload</button>
-        </form>
+        <MediaUploader projects={projects.map(({ id, name }) => ({ id, name }))} />
       </section>}
 
       <div className="cms-list-heading"><span>MEDIA ASSETS</span><span>{assets.length} TOTAL · {assets.filter((asset) => asset.visibility === "public").length} PUBLIC</span></div>

@@ -2,6 +2,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { getPrisma } from "@/lib/db/prisma";
 import { getServiceOffering, serviceOfferings } from "@/features/services/services";
 import { consumeInquiryRateLimit, InquiryRateLimitExceededError } from "@/lib/inquiries/rate-limit";
+import { inquiryEmailConfigured, notificationErrorMessage, sendInquiryNotification } from "@/lib/inquiries/notifications";
 
 export const runtime = "nodejs";
 
@@ -158,8 +159,9 @@ export async function POST(request: Request) {
   const service = getServiceOffering(validation.data.serviceSlug) ?? publishedServices.find((entry) => entry.slug === validation.data!.serviceSlug);
   if (!service) return Response.json({ message: "Choose one of the listed services." }, { status: 422 });
 
+  let createdInquiryId: string;
   try {
-    await prisma.$transaction(async (transaction) => {
+    createdInquiryId = await prisma.$transaction(async (transaction) => {
       const inquiry = await transaction.inquiry.create({
         data: {
           ...validation.data!,
@@ -178,6 +180,7 @@ export async function POST(request: Request) {
           metadata: { source: "public-form", serviceSlug: service.slug },
         },
       });
+      return inquiry.id;
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -185,6 +188,17 @@ export async function POST(request: Request) {
       if (duplicate?.organizationId === organization.id) return Response.json({ success: true }, { status: 200 });
     }
     return Response.json({ message: "The inquiry could not be saved. Please try again later." }, { status: 500 });
+  }
+
+  if (inquiryEmailConfigured()) {
+    try {
+      await sendInquiryNotification({ id: createdInquiryId, ...validation.data, serviceSlug: service.slug });
+      await prisma.inquiry.update({ where: { id: createdInquiryId }, data: { notificationStatus: "sent", notificationSentAt: new Date(), notificationError: null } });
+    } catch (error) {
+      const message = notificationErrorMessage(error);
+      console.error("Inquiry notification delivery failed.", { inquiryId: createdInquiryId, error: message });
+      await prisma.inquiry.update({ where: { id: createdInquiryId }, data: { notificationStatus: "failed", notificationError: message } }).catch(() => undefined);
+    }
   }
 
   return Response.json({ success: true }, { status: 201 });

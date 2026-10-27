@@ -7,7 +7,7 @@ import { requireStudioAction } from "@/lib/auth/session";
 import { getPrisma } from "@/lib/db/prisma";
 import { writeAudit, writeRevision } from "@/lib/audit";
 import { formDate, formText, optionalText, optionalTextLimit, requireSlug, requireText, slugify } from "@/lib/forms";
-import { createMediaDerivatives, deleteMediaFiles, saveMediaFile } from "@/lib/storage/local";
+import { createMediaDerivatives, deleteMediaFiles, getMediaMetadata, MAX_MEDIA_BYTES, mediaExtension } from "@/lib/storage/blob";
 
 async function editor(permission: "upload" | "update" | "delete" | "share") {
   const access = await requireStudioAction({ media: [permission] });
@@ -21,35 +21,46 @@ async function assertProject(organizationId: string, projectId: string | null) {
   return project.id;
 }
 
-export async function uploadMedia(formData: FormData) {
+export async function finalizeMediaUpload(input: { pathname: string; filename: string; projectId: string; visibility: string }) {
   const { session, organizationId } = await editor("upload");
-  const file = formData.get("file");
-  if (!(file instanceof File)) throw new Error("Choose a file to upload.");
-  const projectId = await assertProject(organizationId, optionalText(formData, "projectId"));
-  const visibility = formText(formData, "visibility") === "public" ? "public" : "private";
-  const stored = await saveMediaFile(file);
-  const derivatives = await createMediaDerivatives(stored.storageKey, stored.mimeType);
+  const { pathname } = input;
+  if (!/^media\/[a-f0-9-]{36}\.[a-z0-9]+$/.test(pathname)) throw new Error("Invalid uploaded file.");
+  const metadata = await getMediaMetadata(pathname);
+  const extension = mediaExtension(metadata.contentType);
+  if (!extension || metadata.size < 1 || metadata.size > MAX_MEDIA_BYTES || !pathname.endsWith(extension)) {
+    await deleteMediaFiles([pathname]);
+    throw new Error("The uploaded file type or size is not supported.");
+  }
+  const projectId = await assertProject(organizationId, input.projectId || null);
+  const visibility = input.visibility === "public" ? "public" : "private";
+  const filename = input.filename.split(/[\\/]/).pop()?.slice(0, 180) || `upload${extension}`;
+  const derivatives = await createMediaDerivatives(pathname, metadata.contentType);
   const prisma = getPrisma();
-  const asset = await prisma.$transaction(async (tx) => {
-    const created = await tx.mediaAsset.create({
-      data: {
-        organizationId,
-        projectId,
-        filename: stored.filename,
-        mimeType: stored.mimeType,
-        byteSize: stored.byteSize,
-        storageKey: stored.storageKey,
-        ...(derivatives ?? {}),
-        checksum: stored.checksum,
-        visibility,
-      },
+  try {
+    const asset = await prisma.$transaction(async (tx) => {
+      const created = await tx.mediaAsset.create({
+        data: {
+          organizationId, projectId, filename, mimeType: metadata.contentType, byteSize: metadata.size,
+          storageKey: pathname, ...(derivatives ?? {}), visibility,
+        },
+      });
+      await writeAudit(tx, { organizationId, actorUserId: session.user.id, action: "uploaded", resource: "media_asset", resourceId: created.id, metadata: { filename: created.filename, visibility } });
+      return created;
     });
-    await writeAudit(tx, { organizationId, actorUserId: session.user.id, action: "uploaded", resource: "media_asset", resourceId: created.id, metadata: { filename: created.filename, visibility } });
-    return created;
-  });
-  revalidatePath("/studio/media");
-  if (projectId) revalidatePath(`/studio/projects/${projectId}`);
-  redirect(`/studio/media?uploaded=${encodeURIComponent(asset.id)}`);
+    revalidatePath("/studio/media");
+    if (projectId) revalidatePath(`/studio/projects/${projectId}`);
+    return { id: asset.id };
+  } catch (error) {
+    await deleteMediaFiles([pathname, derivatives?.derivativeKey, derivatives?.thumbnailKey]);
+    throw error;
+  }
+}
+
+export async function discardUnregisteredMediaUpload(pathname: string) {
+  const { organizationId } = await editor("upload");
+  if (!/^media\/[a-f0-9-]{36}\.[a-z0-9]+$/.test(pathname)) return;
+  const existing = await getPrisma().mediaAsset.findFirst({ where: { organizationId, storageKey: pathname }, select: { id: true } });
+  if (!existing) await deleteMediaFiles([pathname]);
 }
 
 export async function setMediaVisibility(id: string, visibility: string) {

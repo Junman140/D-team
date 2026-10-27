@@ -37,6 +37,9 @@ export type InquiryMinAggregateOutputType = {
   consentedAt: Date | null
   consentVersion: string | null
   status: string | null
+  notificationStatus: string | null
+  notificationSentAt: Date | null
+  notificationError: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +57,9 @@ export type InquiryMaxAggregateOutputType = {
   consentedAt: Date | null
   consentVersion: string | null
   status: string | null
+  notificationStatus: string | null
+  notificationSentAt: Date | null
+  notificationError: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -71,6 +77,9 @@ export type InquiryCountAggregateOutputType = {
   consentedAt: number
   consentVersion: number
   status: number
+  notificationStatus: number
+  notificationSentAt: number
+  notificationError: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -90,6 +99,9 @@ export type InquiryMinAggregateInputType = {
   consentedAt?: true
   consentVersion?: true
   status?: true
+  notificationStatus?: true
+  notificationSentAt?: true
+  notificationError?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -107,6 +119,9 @@ export type InquiryMaxAggregateInputType = {
   consentedAt?: true
   consentVersion?: true
   status?: true
+  notificationStatus?: true
+  notificationSentAt?: true
+  notificationError?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -124,6 +139,9 @@ export type InquiryCountAggregateInputType = {
   consentedAt?: true
   consentVersion?: true
   status?: true
+  notificationStatus?: true
+  notificationSentAt?: true
+  notificationError?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -214,6 +232,9 @@ export type InquiryGroupByOutputType = {
   consentedAt: Date
   consentVersion: string
   status: string
+  notificationStatus: string
+  notificationSentAt: Date | null
+  notificationError: string | null
   createdAt: Date
   updatedAt: Date
   _count: InquiryCountAggregateOutputType | null
@@ -252,6 +273,9 @@ export type InquiryWhereInput = {
   consentedAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
   consentVersion?: Prisma.StringFilter<"Inquiry"> | string
   status?: Prisma.StringFilter<"Inquiry"> | string
+  notificationStatus?: Prisma.StringFilter<"Inquiry"> | string
+  notificationSentAt?: Prisma.DateTimeNullableFilter<"Inquiry"> | Date | string | null
+  notificationError?: Prisma.StringNullableFilter<"Inquiry"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -270,6 +294,9 @@ export type InquiryOrderByWithRelationInput = {
   consentedAt?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  notificationStatus?: Prisma.SortOrder
+  notificationSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  notificationError?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -291,6 +318,9 @@ export type InquiryWhereUniqueInput = Prisma.AtLeast<{
   consentedAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
   consentVersion?: Prisma.StringFilter<"Inquiry"> | string
   status?: Prisma.StringFilter<"Inquiry"> | string
+  notificationStatus?: Prisma.StringFilter<"Inquiry"> | string
+  notificationSentAt?: Prisma.DateTimeNullableFilter<"Inquiry"> | Date | string | null
+  notificationError?: Prisma.StringNullableFilter<"Inquiry"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -309,6 +339,9 @@ export type InquiryOrderByWithAggregationInput = {
   consentedAt?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  notificationStatus?: Prisma.SortOrder
+  notificationSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  notificationError?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.InquiryCountOrderByAggregateInput
@@ -332,6 +365,9 @@ export type InquiryScalarWhereWithAggregatesInput = {
   consentedAt?: Prisma.DateTimeWithAggregatesFilter<"Inquiry"> | Date | string
   consentVersion?: Prisma.StringWithAggregatesFilter<"Inquiry"> | string
   status?: Prisma.StringWithAggregatesFilter<"Inquiry"> | string
+  notificationStatus?: Prisma.StringWithAggregatesFilter<"Inquiry"> | string
+  notificationSentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Inquiry"> | Date | string | null
+  notificationError?: Prisma.StringNullableWithAggregatesFilter<"Inquiry"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Inquiry"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Inquiry"> | Date | string
 }
@@ -348,6 +384,9 @@ export type InquiryCreateInput = {
   consentedAt: Date | string
   consentVersion?: string
   status?: string
+  notificationStatus?: string
+  notificationSentAt?: Date | string | null
+  notificationError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutInquiriesInput
@@ -366,6 +405,9 @@ export type InquiryUncheckedCreateInput = {
   consentedAt: Date | string
   consentVersion?: string
   status?: string
+  notificationStatus?: string
+  notificationSentAt?: Date | string | null
+  notificationError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -382,6 +424,9 @@ export type InquiryUpdateInput = {
   consentedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutInquiriesNestedInput
@@ -400,6 +445,9 @@ export type InquiryUncheckedUpdateInput = {
   consentedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -417,6 +465,9 @@ export type InquiryCreateManyInput = {
   consentedAt: Date | string
   consentVersion?: string
   status?: string
+  notificationStatus?: string
+  notificationSentAt?: Date | string | null
+  notificationError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -433,6 +484,9 @@ export type InquiryUpdateManyMutationInput = {
   consentedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -450,6 +504,9 @@ export type InquiryUncheckedUpdateManyInput = {
   consentedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -477,6 +534,9 @@ export type InquiryCountOrderByAggregateInput = {
   consentedAt?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  notificationStatus?: Prisma.SortOrder
+  notificationSentAt?: Prisma.SortOrder
+  notificationError?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -494,6 +554,9 @@ export type InquiryMaxOrderByAggregateInput = {
   consentedAt?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  notificationStatus?: Prisma.SortOrder
+  notificationSentAt?: Prisma.SortOrder
+  notificationError?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -511,6 +574,9 @@ export type InquiryMinOrderByAggregateInput = {
   consentedAt?: Prisma.SortOrder
   consentVersion?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  notificationStatus?: Prisma.SortOrder
+  notificationSentAt?: Prisma.SortOrder
+  notificationError?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -569,6 +635,9 @@ export type InquiryCreateWithoutOrganizationInput = {
   consentedAt: Date | string
   consentVersion?: string
   status?: string
+  notificationStatus?: string
+  notificationSentAt?: Date | string | null
+  notificationError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -585,6 +654,9 @@ export type InquiryUncheckedCreateWithoutOrganizationInput = {
   consentedAt: Date | string
   consentVersion?: string
   status?: string
+  notificationStatus?: string
+  notificationSentAt?: Date | string | null
+  notificationError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -631,6 +703,9 @@ export type InquiryScalarWhereInput = {
   consentedAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
   consentVersion?: Prisma.StringFilter<"Inquiry"> | string
   status?: Prisma.StringFilter<"Inquiry"> | string
+  notificationStatus?: Prisma.StringFilter<"Inquiry"> | string
+  notificationSentAt?: Prisma.DateTimeNullableFilter<"Inquiry"> | Date | string | null
+  notificationError?: Prisma.StringNullableFilter<"Inquiry"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Inquiry"> | Date | string
 }
@@ -647,6 +722,9 @@ export type InquiryCreateManyOrganizationInput = {
   consentedAt: Date | string
   consentVersion?: string
   status?: string
+  notificationStatus?: string
+  notificationSentAt?: Date | string | null
+  notificationError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -663,6 +741,9 @@ export type InquiryUpdateWithoutOrganizationInput = {
   consentedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -679,6 +760,9 @@ export type InquiryUncheckedUpdateWithoutOrganizationInput = {
   consentedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -695,6 +779,9 @@ export type InquiryUncheckedUpdateManyWithoutOrganizationInput = {
   consentedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   consentVersion?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationStatus?: Prisma.StringFieldUpdateOperationsInput | string
+  notificationSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -714,6 +801,9 @@ export type InquirySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   consentedAt?: boolean
   consentVersion?: boolean
   status?: boolean
+  notificationStatus?: boolean
+  notificationSentAt?: boolean
+  notificationError?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -732,6 +822,9 @@ export type InquirySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   consentedAt?: boolean
   consentVersion?: boolean
   status?: boolean
+  notificationStatus?: boolean
+  notificationSentAt?: boolean
+  notificationError?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -750,6 +843,9 @@ export type InquirySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   consentedAt?: boolean
   consentVersion?: boolean
   status?: boolean
+  notificationStatus?: boolean
+  notificationSentAt?: boolean
+  notificationError?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -768,11 +864,14 @@ export type InquirySelectScalar = {
   consentedAt?: boolean
   consentVersion?: boolean
   status?: boolean
+  notificationStatus?: boolean
+  notificationSentAt?: boolean
+  notificationError?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type InquiryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "submissionKey" | "name" | "email" | "serviceSlug" | "eventDate" | "location" | "details" | "consentedAt" | "consentVersion" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["inquiry"]>
+export type InquiryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "submissionKey" | "name" | "email" | "serviceSlug" | "eventDate" | "location" | "details" | "consentedAt" | "consentVersion" | "status" | "notificationStatus" | "notificationSentAt" | "notificationError" | "createdAt" | "updatedAt", ExtArgs["result"]["inquiry"]>
 export type InquiryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -801,6 +900,9 @@ export type $InquiryPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     consentedAt: Date
     consentVersion: string
     status: string
+    notificationStatus: string
+    notificationSentAt: Date | null
+    notificationError: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["inquiry"]>
@@ -1239,6 +1341,9 @@ export interface InquiryFieldRefs {
   readonly consentedAt: Prisma.FieldRef<"Inquiry", 'DateTime'>
   readonly consentVersion: Prisma.FieldRef<"Inquiry", 'String'>
   readonly status: Prisma.FieldRef<"Inquiry", 'String'>
+  readonly notificationStatus: Prisma.FieldRef<"Inquiry", 'String'>
+  readonly notificationSentAt: Prisma.FieldRef<"Inquiry", 'DateTime'>
+  readonly notificationError: Prisma.FieldRef<"Inquiry", 'String'>
   readonly createdAt: Prisma.FieldRef<"Inquiry", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Inquiry", 'DateTime'>
 }

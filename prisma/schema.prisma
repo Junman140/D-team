@@ -165,6 +165,9 @@ model Inquiry {
   consentedAt    DateTime
   consentVersion String       @default("project-inquiry-v1")
   status         String       @default("new")
+  notificationStatus String   @default("pending")
+  notificationSentAt DateTime?
+  notificationError String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

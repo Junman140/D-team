@@ -6,8 +6,31 @@ import { requireStudioAction } from "@/lib/auth/session";
 import { getPrisma } from "@/lib/db/prisma";
 import { writeAudit } from "@/lib/audit";
 import { slugify } from "@/lib/forms";
+import { notificationErrorMessage, sendInquiryNotification } from "@/lib/inquiries/notifications";
 
 const INQUIRY_STATUSES = ["new", "reviewed", "archived", "converted"] as const;
+
+export async function retryInquiryNotification(id: string) {
+  const access = await requireStudioAction({ inquiry: ["update"] });
+  const prisma = getPrisma();
+  const inquiry = await prisma.inquiry.findFirst({ where: { id, organizationId: access.organizationId }, select: { id: true, name: true, email: true, serviceSlug: true, eventDate: true, location: true, details: true } });
+  if (!inquiry) throw new Error("Inquiry not found.");
+  try {
+    await sendInquiryNotification(inquiry);
+    await prisma.$transaction(async (tx) => {
+      await tx.inquiry.update({ where: { id }, data: { notificationStatus: "sent", notificationSentAt: new Date(), notificationError: null } });
+      await writeAudit(tx, { organizationId: access.organizationId, actorUserId: access.session.user.id, action: "notification_sent", resource: "inquiry", resourceId: id });
+    });
+  } catch (error) {
+    const message = notificationErrorMessage(error);
+    await prisma.$transaction(async (tx) => {
+      await tx.inquiry.update({ where: { id }, data: { notificationStatus: "failed", notificationError: message } });
+      await writeAudit(tx, { organizationId: access.organizationId, actorUserId: access.session.user.id, action: "notification_failed", resource: "inquiry", resourceId: id, metadata: { error: message } });
+    });
+  }
+  revalidatePath("/studio/inquiries");
+  redirect(`/studio/inquiries?notification=${encodeURIComponent(id)}`);
+}
 
 export async function updateInquiryStatus(id: string, status: string, formData: FormData) {
   void formData;

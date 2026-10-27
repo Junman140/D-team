@@ -1,24 +1,29 @@
 #!/usr/bin/env bash
 # Convert selected vertical D-Team clips into web-ready showreel assets.
 #
-# Inputs:  public/videos/IMG_52xx.MOV  (HEVC, portrait)
+# Inputs:  one to three source video file paths (HEVC, portrait recommended)
 # Outputs: public/videos/reel-N.mp4     (H.264/AAC, 720x1280, faststart)
 #          public/videos/reel-N.webm    (VP9/Opus, 720x1280)
 #          public/videos/reel-N-poster.jpg (brightest sampled frame, 720 wide)
 # Masters are never modified. Re-run safely: outputs are overwritten.
 #
-# Usage: bash scripts/generate-reel-videos.sh
+# Usage: bash scripts/generate-reel-videos.sh /path/to/clip-1.MOV [/path/to/clip-2.MOV ...]
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# IMG_5268 was rejected: recorded sideways with no rotation metadata.
-clips=("IMG_5250" "IMG_5251" "IMG_5266")
+if [[ $# -lt 1 || $# -gt 3 ]]; then
+  echo "Provide one to three source video paths; optimized reel files are already checked in." >&2
+  echo "Usage: bash scripts/generate-reel-videos.sh /path/to/clip-1.MOV [/path/to/clip-2.MOV ...]" >&2
+  exit 2
+fi
+
+clips=("$@")
 n=0
 
-for clip in "${clips[@]}"; do
+for src in "${clips[@]}"; do
   n=$((n + 1))
-  src="public/videos/${clip}.MOV"
+  clip=$(basename "$src")
   mp4="public/videos/reel-${n}.mp4"
   webm="public/videos/reel-${n}.webm"
   poster="public/videos/reel-${n}-poster.jpg"

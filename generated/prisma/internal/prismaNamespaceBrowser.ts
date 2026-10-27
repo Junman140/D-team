@@ -221,6 +221,9 @@ export const InquiryScalarFieldEnum = {
   consentedAt: 'consentedAt',
   consentVersion: 'consentVersion',
   status: 'status',
+  notificationStatus: 'notificationStatus',
+  notificationSentAt: 'notificationSentAt',
+  notificationError: 'notificationError',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

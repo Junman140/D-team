@@ -4,7 +4,7 @@ import { getServiceOffering } from "@/features/services/services";
 import { getAuth } from "@/lib/auth/server";
 import { AuthorizationDeniedError, getStudioWorkspaceAccess, requireStudioPermission } from "@/lib/auth/session";
 import { getPrisma } from "@/lib/db/prisma";
-import { convertInquiryToClientProject, updateInquiryStatus } from "./actions";
+import { convertInquiryToClientProject, retryInquiryNotification, updateInquiryStatus } from "./actions";
 
 export const metadata = { title: "Inquiries | D-Team Production", robots: { index: false, follow: false } };
 
@@ -36,6 +36,9 @@ export default async function StudioInquiriesPage() {
       location: true,
       details: true,
       status: true,
+      notificationStatus: true,
+      notificationSentAt: true,
+      notificationError: true,
       createdAt: true,
     },
   });
@@ -59,6 +62,10 @@ export default async function StudioInquiriesPage() {
                   <span className={`inquiry-status inquiry-status-${inquiry.status}`}>{inquiry.status}</span>
                 </div>
                 <a className="studio-inquiry-email" href={`mailto:${inquiry.email}`}>{inquiry.email}</a>
+                <p className={`cms-entry-meta inquiry-notification-${inquiry.notificationStatus}`}>
+                  Email alert: {inquiry.notificationStatus}{inquiry.notificationSentAt ? ` · ${new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(inquiry.notificationSentAt)}` : ""}
+                  {inquiry.notificationError ? ` · ${inquiry.notificationError}` : ""}
+                </p>
                 <p className="studio-inquiry-meta">
                   {inquiry.eventDate ? new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" }).format(inquiry.eventDate) : "Date not supplied"}
                   {inquiry.location ? ` · ${inquiry.location}` : ""}
@@ -70,6 +77,7 @@ export default async function StudioInquiriesPage() {
                   <form action={updateInquiryStatus.bind(null, inquiry.id, "archived")}><button type="submit">Archive</button></form>
                   <form action={convertInquiryToClientProject.bind(null, inquiry.id)}><button type="submit" className="primary-action">Convert to client + project</button></form>
                 </div>}
+                {canUpdate && inquiry.notificationStatus !== "sent" && <form action={retryInquiryNotification.bind(null, inquiry.id)}><button type="submit">Retry email alert</button></form>}
               </article>
             );
           })}

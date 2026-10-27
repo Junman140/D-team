@@ -1,6 +1,6 @@
 import { getStudioWorkspaceAccess, hasStudioPermission } from "@/lib/auth/session";
 import { getPrisma } from "@/lib/db/prisma";
-import { readMediaFile } from "@/lib/storage/local";
+import { createMediaReadUrl } from "@/lib/storage/blob";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,17 +42,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       : requestedSize === "medium" && asset.derivativeKey
         ? asset.derivativeKey
         : asset.storageKey;
-    const file = await readMediaFile(storageKey);
-    const filename = asset.filename.replace(/[^\w.\- ]/g, "_");
-    return new Response(new Uint8Array(file), {
-      headers: {
-        "Content-Type": storageKey === asset.storageKey ? asset.mimeType : "image/webp",
-        "Content-Length": String(file.byteLength),
-        "Content-Disposition": `inline; filename="${filename}"`,
-        "Cache-Control": asset.visibility === "public" ? "public, max-age=3600" : "private, no-store",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
+    const url = await createMediaReadUrl(storageKey);
+    return new Response(null, { status: 302, headers: { Location: url, "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
   } catch {
     return new Response("Not found", { status: 404 });
   }
